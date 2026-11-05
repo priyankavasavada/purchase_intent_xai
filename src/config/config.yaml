@@ -1,0 +1,47 @@
+# Single source of truth for paths and parameters.
+# Every module reads from here instead of hard-coding values.
+
+project:
+  random_seed: 42
+
+paths:
+  data_file: dataset/ecommerce_sessions.csv
+  models_dir: models
+  logs_dir: logs
+
+data:
+  target: Converted
+  test_size: 0.2
+
+features:
+  # Right-skewed columns with many zeros: log1p first, then standard scaling.
+  log_scaled:
+    - Administrative
+    - Administrative_Duration
+    - Informational
+    - Informational_Duration
+    - ProductRelated
+    - ProductRelated_Duration
+    - PageValues
+  # Already on a small, bounded range: standard scaling only.
+  scaled:
+    - BounceRates
+    - ExitRates
+    - SpecialDay
+  # One-hot encoded. The int-coded IDs (OperatingSystems, Browser, Region,
+  # TrafficType) are categories, not quantities, so they belong here.
+  categorical:
+    - Month
+    - OperatingSystems
+    - Browser
+    - Region
+    - TrafficType
+    - VisitorType
+    - Weekend
+
+training:
+  # How to deal with class imbalance: none | class_weight | smote
+  imbalance_strategy: class_weight
+  # Placeholder. A value-based threshold is chosen in Week 2.
+  threshold: 0.5
+  cv_folds: 5
