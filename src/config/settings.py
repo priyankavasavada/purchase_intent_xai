@@ -23,6 +23,9 @@ class Settings:
     log_scaled_features: list[str]
     scaled_features: list[str]
     categorical_features: list[str]
+    engineered_log_scaled_features: list[str]
+    engineered_scaled_features: list[str]
+    dropped_features: list[str]
     imbalance_strategy: str
     threshold: float
     cv_folds: int
@@ -34,6 +37,21 @@ class Settings:
     @property
     def feature_columns(self) -> list[str]:
         return self.numeric_features + self.categorical_features
+
+    def _kept(self, columns: list[str]) -> list[str]:
+        return [col for col in columns if col not in self.dropped_features]
+
+    @property
+    def model_log_scaled(self) -> list[str]:
+        return self._kept(self.log_scaled_features + self.engineered_log_scaled_features)
+
+    @property
+    def model_scaled(self) -> list[str]:
+        return self._kept(self.scaled_features + self.engineered_scaled_features)
+
+    @property
+    def model_categorical(self) -> list[str]:
+        return self._kept(self.categorical_features)
 
 
 @lru_cache
@@ -63,6 +81,9 @@ def get_settings(config_file: Path = CONFIG_FILE) -> Settings:
         log_scaled_features=features["log_scaled"],
         scaled_features=features["scaled"],
         categorical_features=features["categorical"],
+        engineered_log_scaled_features=features["engineered_log_scaled"],
+        engineered_scaled_features=features["engineered_scaled"],
+        dropped_features=features["dropped"],
         imbalance_strategy=training["imbalance_strategy"],
         threshold=training["threshold"],
         cv_folds=training["cv_folds"],

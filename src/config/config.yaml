@@ -38,6 +38,17 @@ features:
     - TrafficType
     - VisitorType
     - Weekend
+  # Built by src/features/engineering.py, then processed like the groups above.
+  engineered_log_scaled:
+    - total_pages
+    - total_duration
+    - avg_time_per_page
+    - avg_time_per_product_page
+  engineered_scaled:
+    - product_page_share
+    - product_time_share
+  # Columns left out of the model after feature selection.
+  dropped: []
 
 training:
   # How to deal with class imbalance: none | class_weight | smote

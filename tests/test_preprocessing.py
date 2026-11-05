@@ -4,12 +4,13 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 
 from src.data.loader import load_data
+from src.features.engineering import add_behavioural_features
 from src.preprocessing.pipeline import build_pipeline, build_preprocessor
 
 
 @pytest.fixture(scope="module")
 def data():
-    return load_data()
+    return add_behavioural_features(load_data())
 
 
 def test_preprocessor_output_has_no_nans(data):

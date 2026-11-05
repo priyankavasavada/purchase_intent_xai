@@ -13,6 +13,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 
 from src.config.settings import Settings, get_settings
+from src.features.engineering import add_behavioural_features
 
 IMBALANCE_STRATEGIES = ("none", "class_weight", "smote")
 
@@ -34,9 +35,9 @@ def build_preprocessor(settings: Settings | None = None) -> ColumnTransformer:
 
     return ColumnTransformer(
         transformers=[
-            ("log_scaled", log_then_scale, settings.log_scaled_features),
-            ("scaled", StandardScaler(), settings.scaled_features),
-            ("categorical", one_hot, settings.categorical_features),
+            ("log_scaled", log_then_scale, settings.model_log_scaled),
+            ("scaled", StandardScaler(), settings.model_scaled),
+            ("categorical", one_hot, settings.model_categorical),
         ],
         remainder="drop",
     )
@@ -47,7 +48,7 @@ def build_pipeline(
     strategy: str | None = None,
     settings: Settings | None = None,
 ) -> Pipeline:
-    """Chain preprocessing, an optional imbalance step and the model.
+    """Chain feature engineering, preprocessing, an imbalance step and the model.
 
     Strategies:
         none          - train on the data as it is (tune the threshold later)
@@ -63,7 +64,10 @@ def build_pipeline(
         )
 
     model = clone(model)
-    steps = [("preprocess", build_preprocessor(settings))]
+    steps = [
+        ("features", FunctionTransformer(add_behavioural_features)),
+        ("preprocess", build_preprocessor(settings)),
+    ]
 
     if strategy == "smote":
         steps.append(("smote", SMOTE(random_state=settings.random_seed)))
