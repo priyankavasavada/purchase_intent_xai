@@ -3,7 +3,7 @@
 Predicts whether an online shopping session will end in a purchase, explains each
 prediction, and (in later weeks) serves it through an API and a dashboard.
 
-> Status: Week 1 (foundations & data) complete. See `docs/week1_notes.md`.
+> Status: Week 1 complete, Week 2 in progress. See `docs/week1_notes.md` and `docs/week2_notes.md`.
 
 ## Setup
 
@@ -14,6 +14,8 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+On macOS, XGBoost and LightGBM also need OpenMP: `brew install libomp`.
 
 ## Usage
 
@@ -28,9 +30,15 @@ python -m src.models.predict examples/sample_session.json
 
 # Compare imbalance strategies with 5-fold stratified cross-validation
 python -m src.models.compare_imbalance
+
+# Rank features and compare feature sets -> reports/
+python -m src.features.selection
+
+# Compare the six models, with and without PageValues -> reports/
+python -m src.models.compare_models
 ```
 
-The EDA notebook is `notebooks/01_eda.ipynb`.
+Notebooks: `01_eda.ipynb` (EDA) and `02_features.ipynb` (feature selection).
 
 ## Code quality
 
@@ -50,10 +58,12 @@ notebooks/      exploration and storytelling (imports code from src/)
 src/
   config/       config.yaml + typed settings loader
   data/         loading, validation, train/test split
+  features/     behavioural features + feature selection
   preprocessing/ ColumnTransformer + imbalance strategy
   models/       training, evaluation, saving/loading, prediction
   utils/        logging
 models/         saved model artifacts (not committed)
+reports/        results from the comparison scripts
 tests/          pytest suite
 docs/           documentation
 ```

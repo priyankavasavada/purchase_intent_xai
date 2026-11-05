@@ -5,7 +5,7 @@
 | Date | Change | Reason |
 |---|---|---|
 | 2026-11-01 | No download script | PRD §2.1: the dataset already ships in `dataset/`. The loader checks that the file exists and is valid instead. |
-| 2026-11-01 | Python 3.12 | Newest version that all later libraries (CatBoost, SHAP, LightGBM, MLflow) support reliably. |
+| 2026-11-01 | Python 3.12 | Chosen over 3.14 for library support. The later libraries install on 3.12; 3.14 was not tested. |
 
 ---
 
@@ -124,5 +124,5 @@ dataset/ecommerce_sessions.csv
    → python -m src.models.predict examples/sample_session.json
 ```
 
-Baseline test results: dummy model accuracy 0.843 / recall 0.0; logistic regression
+Baseline test results at the end of Week 1, before the Week 2 feature changes: dummy model accuracy 0.843 / recall 0.0; logistic regression
 PR-AUC 0.82, recall 0.94, precision 0.60.
