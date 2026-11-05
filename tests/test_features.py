@@ -3,6 +3,7 @@ import pytest
 
 from src.data.loader import load_data
 from src.features.engineering import add_behavioural_features
+from src.features.selection import _original_column
 
 
 def make_session(**overrides) -> pd.DataFrame:
@@ -58,3 +59,11 @@ def test_no_missing_or_negative_values_on_real_data():
     assert not engineered[new_columns].isna().any().any()
     assert (engineered[new_columns] >= 0).all().all()
     assert engineered["product_time_share"].max() == pytest.approx(1.0)
+
+
+def test_encoded_names_map_back_to_their_column():
+    categorical = ["Month", "Region"]
+
+    assert _original_column("categorical__Month_Nov", categorical) == "Month"
+    assert _original_column("categorical__Region_3", categorical) == "Region"
+    assert _original_column("log_scaled__PageValues", categorical) == "PageValues"

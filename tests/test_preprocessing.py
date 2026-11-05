@@ -53,3 +53,12 @@ def test_class_weight_is_set_on_a_copy():
 def test_smote_step_is_added():
     pipeline = build_pipeline(LogisticRegression(), strategy="smote")
     assert "smote" in pipeline.named_steps
+
+
+def test_dropped_features_are_left_out(data):
+    preprocessor = build_preprocessor().fit(data)
+    names = " ".join(preprocessor.get_feature_names_out())
+
+    assert "VisitorType" not in names
+    assert "Weekend" not in names
+    assert "log_scaled__total_pages" in names

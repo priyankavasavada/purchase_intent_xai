@@ -47,8 +47,13 @@ features:
   engineered_scaled:
     - product_page_share
     - product_time_share
-  # Columns left out of the model after feature selection.
-  dropped: []
+  # Left out of the model: weak by both importance methods, with and without
+  # PageValues, and removing them does not lower PR-AUC. See notebooks/02_features.
+  dropped:
+    - Administrative
+    - Informational
+    - VisitorType
+    - Weekend
 
 training:
   # How to deal with class imbalance: none | class_weight | smote
