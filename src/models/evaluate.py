@@ -10,6 +10,16 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
+# Scorer names for cross-validation, buying-class metrics first.
+CV_SCORING = {
+    "pr_auc": "average_precision",
+    "recall": "recall",
+    "precision": "precision",
+    "f1": "f1",
+    "roc_auc": "roc_auc",
+    "accuracy": "accuracy",
+}
+
 
 def compute_metrics(y_true: np.ndarray, y_proba: np.ndarray, threshold: float) -> dict:
     """Return the metric suite for predicted buyer probabilities.

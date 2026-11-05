@@ -43,10 +43,26 @@ def build_preprocessor(settings: Settings | None = None) -> ColumnTransformer:
     )
 
 
+def _balance_params(model: BaseEstimator, neg_pos_ratio: float | None) -> dict:
+    """Return the settings that make a model weigh buyers more heavily."""
+    name = type(model).__name__
+
+    if name == "CatBoostClassifier":
+        return {"auto_class_weights": "Balanced"}
+    if name == "XGBClassifier":
+        if neg_pos_ratio is None:
+            raise ValueError("XGBClassifier needs neg_pos_ratio for class weighting")
+        return {"scale_pos_weight": neg_pos_ratio}
+    if "class_weight" in model.get_params():
+        return {"class_weight": "balanced"}
+    raise ValueError(f"{name} does not support class_weight")
+
+
 def build_pipeline(
     model: BaseEstimator,
     strategy: str | None = None,
     settings: Settings | None = None,
+    neg_pos_ratio: float | None = None,
 ) -> Pipeline:
     """Chain feature engineering, preprocessing, an imbalance step and the model.
 
@@ -54,6 +70,9 @@ def build_pipeline(
         none          - train on the data as it is (tune the threshold later)
         class_weight  - tell the model to weigh buyers more heavily
         smote         - create synthetic buyer rows, on training folds only
+
+    neg_pos_ratio (non-buyers / buyers in the training data) is only needed by
+    XGBoost, which takes the class weight as a number.
     """
     settings = settings or get_settings()
     strategy = strategy or settings.imbalance_strategy
@@ -72,9 +91,7 @@ def build_pipeline(
     if strategy == "smote":
         steps.append(("smote", SMOTE(random_state=settings.random_seed)))
     elif strategy == "class_weight":
-        if "class_weight" not in model.get_params():
-            raise ValueError(f"{type(model).__name__} does not support class_weight")
-        model.set_params(class_weight="balanced")
+        model.set_params(**_balance_params(model, neg_pos_ratio))
 
     steps.append(("model", model))
     return Pipeline(steps=steps)
