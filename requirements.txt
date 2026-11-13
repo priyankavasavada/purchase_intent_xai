@@ -21,6 +21,11 @@ mlflow==3.18.0
 shap==0.54.1
 lime==0.2.0.1
 
+# API
+fastapi==0.162.5
+uvicorn==0.54.0
+httpx==0.28.1
+
 # Visualisation (EDA notebook)
 matplotlib==3.11.2
 seaborn==0.13.2
