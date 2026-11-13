@@ -5,6 +5,21 @@ prediction, and (in later weeks) serves it through an API and a dashboard.
 
 > Status: Weeks 1–3 complete. See the notes in `docs/` and the [model card](docs/model_card.md).
 
+## Changes from the brief
+
+The brief asks for scope changes to be recorded. Each one is explained in the notes in `docs/`.
+
+| Date | Change | Reason |
+|---|---|---|
+| 2026-11-01 | No download script | The dataset ships in `dataset/` (brief §2.1). The loader validates it instead. |
+| 2026-11-01 | Python 3.12 | Chosen over 3.14 so every library in the stack installs. |
+| 2026-11-05 | CatBoost uses one-hot encoding, not its native categoricals | Keeps one common pipeline for all six models. |
+| 2026-11-13 | PageValues left out of the model | Data leakage: sessions are scored mid-visit, and PageValues mostly fills in on the way to checkout. A comparison model with it is kept for the dashboard. |
+| 2026-11-13 | No single value-based threshold chosen by us | The value of a conversion and the cost of a nudge are unknown and owned by the CRO team. We deliver operating-point tooling and a neutral best-F1 default (0.27). |
+| 2026-11-13 | Imbalance strategy `none` | All three strategies were benchmarked; SMOTE never helped and class weights only moved the precision/recall trade-off. |
+| 2026-11-13 | MLflow models saved with cloudpickle | MLflow's skops default refuses the pipeline's custom classes. |
+| 2026-11-13 | Final model files committed | So a fresh clone can start the API without retraining. |
+
 ## Setup
 
 Requires Python 3.12.

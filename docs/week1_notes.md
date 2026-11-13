@@ -1,5 +1,11 @@
 # Week 1 — Foundations & Data: what we built and why
 
+> **Later changes.** These notes describe Week 1 as it was. Three choices were revised
+> in Week 2: the imbalance strategy became `none` (class weights only moved the
+> precision/recall trade-off), the 0.5 threshold was replaced by operating-point tooling
+> with a best-F1 default, and PageValues was left out of the model to prevent leakage.
+> See `docs/week2_notes.md`.
+
 ## Scope changes (PRD "Document control")
 
 | Date | Change | Reason |
