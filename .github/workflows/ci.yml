@@ -10,24 +10,54 @@ jobs:
 
     steps:
       - name: Check out the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt -c constraints.txt
 
       - name: Lint with ruff
-        run: ruff check src tests
+        run: ruff check src tests dashboard
 
       - name: Check formatting with black
-        run: black --check src tests
+        run: black --check src tests dashboard
 
       - name: Run tests
         run: pytest -v
 
-      # Docker image build is added in Week 4.
+  docker:
+    # Build both images and check the whole stack starts and answers.
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v5
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Start the API and dashboard
+        run: docker compose up --detach --wait --wait-timeout 240
+
+      - name: Check the API
+        run: |
+          curl --fail --silent http://localhost:8000/health
+          curl --fail --silent -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" -d @examples/api_request.json
+
+      - name: Check the dashboard
+        run: curl --fail --silent http://localhost:8501/_stcore/health
+
+      - name: Show container logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose down
