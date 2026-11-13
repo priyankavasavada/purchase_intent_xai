@@ -62,7 +62,12 @@ features:
 
 training:
   # How to deal with class imbalance: none | class_weight | smote
-  imbalance_strategy: class_weight
+  # "none": SMOTE never helped and class weights only moved the precision/recall
+  # trade-off, which the operating threshold handles. Without reweighting, the
+  # predicted probabilities stay closer to real conversion chances.
+  imbalance_strategy: none
   # Placeholder. A value-based threshold is chosen in Week 2.
   threshold: 0.5
   cv_folds: 5
+  # Random parameter combinations tried per model during tuning.
+  tuning_iterations: 20

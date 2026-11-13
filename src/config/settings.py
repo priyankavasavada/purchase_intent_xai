@@ -30,6 +30,7 @@ class Settings:
     imbalance_strategy: str
     threshold: float
     cv_folds: int
+    tuning_iterations: int
 
     @property
     def numeric_features(self) -> list[str]:
@@ -95,4 +96,5 @@ def get_settings(config_file: Path = CONFIG_FILE) -> Settings:
         imbalance_strategy=training["imbalance_strategy"],
         threshold=training["threshold"],
         cv_folds=training["cv_folds"],
+        tuning_iterations=training["tuning_iterations"],
     )

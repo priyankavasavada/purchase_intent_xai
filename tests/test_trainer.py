@@ -59,3 +59,19 @@ def test_class_weight_does_not_change_the_shared_model(sample):
     _, y = sample
     ModelTrainer("lightgbm", MODELS["lightgbm"], "class_weight", settings).build(y)
     assert MODELS["lightgbm"].get_params()["class_weight"] is None
+
+
+def test_tuning_returns_params_and_scores(sample):
+    X, y = sample
+    result = ModelTrainer("decision_tree", MODELS["decision_tree"], "none", settings).tune(
+        X, y, n_iter=2
+    )
+
+    assert set(result["params"]) == {"max_depth", "min_samples_leaf"}
+    assert 0 <= result["scores"]["pr_auc_mean"] <= 1
+
+
+def test_every_model_has_a_search_space():
+    from src.models.trainer import PARAM_SPACES
+
+    assert set(PARAM_SPACES) == set(MODELS)
