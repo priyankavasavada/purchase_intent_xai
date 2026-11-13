@@ -3,7 +3,7 @@
 Predicts whether an online shopping session will end in a purchase, explains each
 prediction, and (in later weeks) serves it through an API and a dashboard.
 
-> Status: Weeks 1 and 2 complete. See `docs/week1_notes.md` and `docs/week2_notes.md`.
+> Status: Weeks 1–3 complete. See the notes in `docs/` and the [model card](docs/model_card.md).
 
 ## Setup
 
@@ -35,6 +35,12 @@ python -m src.models.predict examples/sample_session.json
 # Browse experiment runs and the model registry at http://127.0.0.1:5000
 mlflow ui --backend-store-uri sqlite:///mlflow.db
 
+# Save global SHAP importance for the dashboard
+python -m src.explain.report
+
+# Start the API; interactive docs at http://127.0.0.1:8000/docs
+uvicorn src.api.main:app --reload
+
 # Compare imbalance strategies with 5-fold stratified cross-validation
 python -m src.models.compare_imbalance
 
@@ -45,7 +51,7 @@ python -m src.features.selection
 python -m src.models.compare_models
 ```
 
-Notebooks: `01_eda.ipynb` (EDA), `02_features.ipynb` (feature selection) and `03_modeling.ipynb` (model comparison and operating points).
+Notebooks: `01_eda.ipynb` (EDA), `02_features.ipynb` (feature selection) `03_modeling.ipynb` (model comparison and operating points) and `04_xai.ipynb` (SHAP and LIME).
 
 ## Code quality
 
@@ -63,8 +69,10 @@ The same three checks run in GitHub Actions on every push (`.github/workflows/ci
 dataset/        raw data + data dictionary
 notebooks/      exploration and storytelling (imports code from src/)
 src/
+  api/          FastAPI app, request/response schemas, scoring
   config/       config.yaml + typed settings loader
   data/         loading, validation, train/test split
+  explain/      SHAP and LIME explanations
   features/     behavioural features + feature selection
   preprocessing/ ColumnTransformer + imbalance strategy
   models/       training, tuning, thresholds, MLflow, saving/loading, prediction
