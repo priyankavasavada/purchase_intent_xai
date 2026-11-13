@@ -2,6 +2,8 @@
 
 Run from the project root:
     python -m src.models.predict examples/sample_session.json
+
+By default the newest saved purchase_intent model is used.
 """
 
 import argparse
@@ -11,8 +13,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.config.settings import get_settings
-from src.models.artifacts import ModelArtifact, load_artifact
-from src.models.train_baseline import MODEL_NAME
+from src.models.artifacts import ModelArtifact, latest_version_name, load_artifact
 from src.utils.logger import get_logger, setup_logging
 
 logger = get_logger(__name__)
@@ -50,13 +51,14 @@ def read_sessions(path: Path) -> pd.DataFrame:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Predict purchase intent for sessions.")
     parser.add_argument("input", type=Path, help="JSON file with one session or a list")
-    parser.add_argument("--model", default=MODEL_NAME, help="Name of the saved model")
+    parser.add_argument("--model", help="Saved model name (default: newest purchase_intent)")
     args = parser.parse_args()
 
     settings = get_settings()
     setup_logging()
 
-    artifact = load_artifact(args.model, settings.models_dir)
+    model_name = args.model or latest_version_name(settings.models_dir, "purchase_intent")
+    artifact = load_artifact(model_name, settings.models_dir)
     sessions = read_sessions(args.input)
     predictions = predict_sessions(sessions, artifact)
 

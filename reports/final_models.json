@@ -1,0 +1,41 @@
+{
+  "model_type": "xgboost",
+  "variants": {
+    "purchase_intent": {
+      "name": "purchase_intent_v1",
+      "threshold": 0.27,
+      "test_metrics": {
+        "pr_auc": 0.5585,
+        "recall": 0.6101,
+        "precision": 0.5287,
+        "f1": 0.5665,
+        "roc_auc": 0.8487,
+        "accuracy": 0.8533
+      },
+      "confusion": {
+        "tn": 1818,
+        "fp": 205,
+        "fn": 147,
+        "tp": 230
+      }
+    },
+    "purchase_intent_with_page_values": {
+      "name": "purchase_intent_with_page_values_v1",
+      "threshold": 0.45,
+      "test_metrics": {
+        "pr_auc": 0.8674,
+        "recall": 0.8064,
+        "precision": 0.7755,
+        "f1": 0.7906,
+        "roc_auc": 0.9723,
+        "accuracy": 0.9329
+      },
+      "confusion": {
+        "tn": 1935,
+        "fp": 88,
+        "fn": 73,
+        "tp": 304
+      }
+    }
+  }
+}

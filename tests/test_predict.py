@@ -51,3 +51,23 @@ def test_predict_rejects_missing_columns(saved_model_dir):
 def test_loading_unknown_model_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         load_artifact("no_such_model", tmp_path)
+
+
+def test_versions_count_up(tmp_path):
+    from src.models.artifacts import latest_version_name, next_version_name
+
+    assert next_version_name(tmp_path, "purchase_intent") == "purchase_intent_v1"
+    for version in (1, 2):
+        (tmp_path / f"purchase_intent_v{version}.joblib").touch()
+    # A different model with a similar name must not be counted.
+    (tmp_path / "purchase_intent_with_page_values_v7.joblib").touch()
+
+    assert next_version_name(tmp_path, "purchase_intent") == "purchase_intent_v3"
+    assert latest_version_name(tmp_path, "purchase_intent") == "purchase_intent_v2"
+
+
+def test_latest_version_without_models_raises(tmp_path):
+    from src.models.artifacts import latest_version_name
+
+    with pytest.raises(FileNotFoundError):
+        latest_version_name(tmp_path, "purchase_intent")

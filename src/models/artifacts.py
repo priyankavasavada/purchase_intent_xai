@@ -37,6 +37,7 @@ def save_artifact(
     threshold: float,
     feature_columns: list[str],
     metrics: dict,
+    extra: dict | None = None,
 ) -> Path:
     """Write <name>.joblib and <name>.json into models_dir and return the model path."""
     models_dir.mkdir(parents=True, exist_ok=True)
@@ -50,6 +51,7 @@ def save_artifact(
         "feature_columns": feature_columns,
         "test_metrics": metrics,
         "sklearn_version": sklearn.__version__,
+        **(extra or {}),
     }
 
     joblib.dump(pipeline, model_path)
@@ -65,8 +67,7 @@ def load_artifact(name: str, models_dir: Path) -> ModelArtifact:
 
     if not model_path.exists() or not metadata_path.exists():
         raise FileNotFoundError(
-            f"No saved model '{name}' in {models_dir}. Train one first with "
-            "`python -m src.models.train_baseline`."
+            f"No saved model '{name}' in {models_dir}. Train one first (see README)."
         )
 
     pipeline = joblib.load(model_path)
@@ -81,3 +82,30 @@ def load_artifact(name: str, models_dir: Path) -> ModelArtifact:
 
     logger.info("Loaded model '%s' (created %s)", name, metadata["created_at"])
     return ModelArtifact(pipeline=pipeline, metadata=metadata)
+
+
+def _versions(models_dir: Path, prefix: str) -> list[int]:
+    """Version numbers of saved models called <prefix>_v<number>."""
+    versions = []
+    for path in models_dir.glob(f"{prefix}_v*.joblib"):
+        number = path.stem.removeprefix(f"{prefix}_v")
+        if number.isdigit():
+            versions.append(int(number))
+    return sorted(versions)
+
+
+def next_version_name(models_dir: Path, prefix: str) -> str:
+    """Name for the next version, e.g. purchase_intent_v3 after v1 and v2."""
+    versions = _versions(models_dir, prefix)
+    return f"{prefix}_v{versions[-1] + 1 if versions else 1}"
+
+
+def latest_version_name(models_dir: Path, prefix: str) -> str:
+    """Name of the newest saved version, e.g. purchase_intent_v2."""
+    versions = _versions(models_dir, prefix)
+    if not versions:
+        raise FileNotFoundError(
+            f"No '{prefix}' model in {models_dir}. Train one with "
+            "`python -m src.models.train_final`."
+        )
+    return f"{prefix}_v{versions[-1]}"
