@@ -15,6 +15,7 @@ logs/
 models/*.joblib
 models/*.json
 mlruns/
+mlflow.db
 
 # Secrets and OS files
 .env

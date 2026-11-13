@@ -14,6 +14,9 @@ lightgbm==4.7.0
 xgboost==3.4.1
 catboost==1.2.10
 
+# Experiment tracking
+mlflow==3.18.0
+
 # Visualisation (EDA notebook)
 matplotlib==3.11.2
 seaborn==0.13.2

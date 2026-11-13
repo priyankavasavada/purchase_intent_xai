@@ -9,10 +9,12 @@ Run from the project root:
 
 import json
 
+import mlflow
 import pandas as pd
 
 from src.config.settings import PROJECT_ROOT, get_settings
 from src.data.loader import load_data, split_data
+from src.models.tracking import start_tracking
 from src.models.trainer import ModelTrainer, get_models
 from src.utils.logger import get_logger, setup_logging
 
@@ -24,6 +26,7 @@ REPORT_DIR = PROJECT_ROOT / "reports"
 def main() -> None:
     settings = get_settings()
     setup_logging(settings.logs_dir)
+    start_tracking(settings)
 
     X_train, _, y_train, _ = split_data(load_data(settings=settings), settings)
 
@@ -34,6 +37,18 @@ def main() -> None:
         tuned = trainer.tune(X_train, y_train)
 
         best_params[name] = tuned["params"]
+        with mlflow.start_run(run_name=f"tune-{name}"):
+            mlflow.set_tags({"stage": "tuning", "model_type": name})
+            mlflow.log_params(
+                {
+                    **tuned["params"],
+                    "imbalance_strategy": settings.imbalance_strategy,
+                    "cv_folds": settings.cv_folds,
+                    "tuning_iterations": settings.tuning_iterations,
+                }
+            )
+            mlflow.log_metrics({f"cv_{key}": value for key, value in tuned["scores"].items()})
+            mlflow.log_metric("cv_pr_auc_before_tuning", before["pr_auc_mean"])
         rows.append(
             {
                 "model": name,

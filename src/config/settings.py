@@ -31,6 +31,10 @@ class Settings:
     threshold: float
     cv_folds: int
     tuning_iterations: int
+    mlflow_tracking_uri: str
+    mlflow_artifacts_dir: Path
+    mlflow_experiment: str
+    mlflow_registered_model: str
 
     @property
     def numeric_features(self) -> list[str]:
@@ -78,6 +82,7 @@ def get_settings(config_file: Path = CONFIG_FILE) -> Settings:
     paths = config["paths"]
     features = config["features"]
     training = config["training"]
+    tracking = config["mlflow"]
 
     return Settings(
         random_seed=config["project"]["random_seed"],
@@ -97,4 +102,8 @@ def get_settings(config_file: Path = CONFIG_FILE) -> Settings:
         threshold=training["threshold"],
         cv_folds=training["cv_folds"],
         tuning_iterations=training["tuning_iterations"],
+        mlflow_tracking_uri=f"sqlite:///{PROJECT_ROOT / tracking['tracking_db']}",
+        mlflow_artifacts_dir=PROJECT_ROOT / tracking["artifacts_dir"],
+        mlflow_experiment=tracking["experiment"],
+        mlflow_registered_model=tracking["registered_model"],
     )

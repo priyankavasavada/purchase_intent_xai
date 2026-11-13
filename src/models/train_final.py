@@ -14,6 +14,8 @@ Run from the project root:
 import json
 from dataclasses import replace
 
+import mlflow
+from mlflow.models import infer_signature
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
 
@@ -22,6 +24,7 @@ from src.data.loader import load_data, split_data
 from src.models.artifacts import next_version_name, save_artifact
 from src.models.evaluate import compute_metrics
 from src.models.threshold import default_threshold, operating_points
+from src.models.tracking import start_tracking
 from src.models.trainer import ModelTrainer, get_models
 from src.utils.logger import get_logger, setup_logging
 
@@ -35,7 +38,9 @@ THRESHOLD_RULE = (
 )
 
 
-def train_variant(prefix: str, settings: Settings, model_name: str, params: dict, data) -> dict:
+def train_variant(
+    prefix: str, settings: Settings, model_name: str, params: dict, data, register: bool
+) -> dict:
     """Train, evaluate and save one version of the model. Returns its summary."""
     X_train, X_test, y_train, y_test = data
     model = get_models(settings.random_seed)[model_name].set_params(**params)
@@ -57,9 +62,8 @@ def train_variant(prefix: str, settings: Settings, model_name: str, params: dict
     confusion = {"tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp)}
 
     # The trade-off on unseen data, for the dashboard.
-    operating_points(y_test, test_proba).to_csv(
-        REPORT_DIR / f"operating_points_{prefix}.csv", index=False
-    )
+    points_file = REPORT_DIR / f"operating_points_{prefix}.csv"
+    operating_points(y_test, test_proba).to_csv(points_file, index=False)
 
     name = next_version_name(settings.models_dir, prefix)
     save_artifact(
@@ -77,6 +81,36 @@ def train_variant(prefix: str, settings: Settings, model_name: str, params: dict
             "leakage_excluded_features": settings.leakage_excluded_features,
         },
     )
+    with mlflow.start_run(run_name=name):
+        mlflow.set_tags({"stage": "final", "model_type": model_name, "variant": prefix})
+        mlflow.log_params(
+            {
+                **params,
+                "imbalance_strategy": settings.imbalance_strategy,
+                "leakage_excluded": ",".join(settings.leakage_excluded_features) or "none",
+                "dropped_features": ",".join(settings.dropped_features),
+            }
+        )
+        mlflow.log_metric("threshold", threshold)
+        mlflow.log_metrics({f"test_{key}": value for key, value in metrics.items()})
+        mlflow.log_metrics({f"test_{key}": value for key, value in confusion.items()})
+        mlflow.log_artifact(str(points_file))
+
+        # The signature records the expected input columns and the output type.
+        X_input = X_test[settings.input_columns]
+        signature = infer_signature(X_input.head(100), pipeline.predict_proba(X_input.head(100)))
+        mlflow.sklearn.log_model(
+            pipeline,
+            name="model",
+            signature=signature,
+            input_example=X_input.head(3),
+            code_paths=[str(PROJECT_ROOT / "src")],
+            # Same format as the joblib file. MLflow's default (skops) refuses the
+            # pipeline's custom classes unless each one is listed as trusted.
+            serialization_format=mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,
+            registered_model_name=settings.mlflow_registered_model if register else None,
+        )
+
     logger.info("%s: threshold %.2f, test metrics %s", name, threshold, metrics)
     logger.info("%s: test confusion matrix %s", name, confusion)
     return {"name": name, "threshold": threshold, "test_metrics": metrics, "confusion": confusion}
@@ -85,6 +119,7 @@ def train_variant(prefix: str, settings: Settings, model_name: str, params: dict
 def main() -> None:
     settings = get_settings()
     setup_logging(settings.logs_dir)
+    start_tracking(settings)
 
     params_file = REPORT_DIR / "best_params.json"
     if not params_file.exists():
@@ -99,8 +134,11 @@ def main() -> None:
         "purchase_intent": settings,
         "purchase_intent_with_page_values": replace(settings, leakage_excluded_features=[]),
     }
+    # Only the real model goes into the registry; the PageValues one is for comparison.
     summary = {
-        prefix: train_variant(prefix, variant_settings, model_name, params, data)
+        prefix: train_variant(
+            prefix, variant_settings, model_name, params, data, register=prefix == "purchase_intent"
+        )
         for prefix, variant_settings in variants.items()
     }
 

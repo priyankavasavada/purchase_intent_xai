@@ -71,3 +71,10 @@ training:
   cv_folds: 5
   # Random parameter combinations tried per model during tuning.
   tuning_iterations: 20
+
+mlflow:
+  # Local experiment log. Open it with: mlflow ui --backend-store-uri sqlite:///mlflow.db
+  tracking_db: mlflow.db
+  artifacts_dir: mlruns
+  experiment: purchase-intent
+  registered_model: purchase-intent
