@@ -7,6 +7,16 @@ training and serving always compute these columns the same way.
 import numpy as np
 import pandas as pd
 
+# Raw columns the engineered features are built from.
+SOURCE_COLUMNS = [
+    "Administrative",
+    "Administrative_Duration",
+    "Informational",
+    "Informational_Duration",
+    "ProductRelated",
+    "ProductRelated_Duration",
+]
+
 
 def _safe_ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
     """Divide two columns, returning 0 where the denominator is 0."""
