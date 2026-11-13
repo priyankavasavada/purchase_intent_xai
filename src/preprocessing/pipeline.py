@@ -18,6 +18,15 @@ from src.features.engineering import add_behavioural_features
 IMBALANCE_STRATEGIES = ("none", "class_weight", "smote")
 
 
+def original_column(encoded_name: str, categorical: list[str]) -> str:
+    """Map a preprocessed name like 'categorical__Month_Nov' back to 'Month'."""
+    name = encoded_name.split("__", 1)[1]
+    for col in categorical:
+        if name.startswith(f"{col}_"):
+            return col
+    return name
+
+
 def build_preprocessor(settings: Settings | None = None) -> ColumnTransformer:
     """Create the (unfitted) ColumnTransformer for numeric and categorical columns."""
     settings = settings or get_settings()

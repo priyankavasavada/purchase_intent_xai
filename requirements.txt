@@ -17,6 +17,9 @@ catboost==1.2.10
 # Experiment tracking
 mlflow==3.18.0
 
+# Explainability
+shap==0.54.1
+
 # Visualisation (EDA notebook)
 matplotlib==3.11.2
 seaborn==0.13.2

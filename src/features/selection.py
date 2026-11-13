@@ -19,7 +19,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from src.config.settings import PROJECT_ROOT, Settings, get_settings
 from src.data.loader import load_data, split_data
 from src.features.engineering import add_behavioural_features
-from src.preprocessing.pipeline import build_pipeline
+from src.preprocessing.pipeline import build_pipeline, original_column
 from src.utils.logger import get_logger, setup_logging
 
 logger = get_logger(__name__)
@@ -41,15 +41,6 @@ def _lightgbm(settings: Settings) -> LGBMClassifier:
     )
 
 
-def _original_column(encoded_name: str, categorical: list[str]) -> str:
-    """Map a preprocessed name like 'categorical__Month_Nov' back to 'Month'."""
-    name = encoded_name.split("__", 1)[1]
-    for col in categorical:
-        if name.startswith(f"{col}_"):
-            return col
-    return name
-
-
 def rank_features(X: pd.DataFrame, y: pd.Series, settings: Settings) -> pd.DataFrame:
     """Return gain and permutation importance per column, averaged over the folds."""
     cv = StratifiedKFold(
@@ -62,7 +53,7 @@ def rank_features(X: pd.DataFrame, y: pd.Series, settings: Settings) -> pd.DataF
         pipeline.fit(X.iloc[fit_idx], y.iloc[fit_idx])
 
         names = pipeline.named_steps["preprocess"].get_feature_names_out()
-        columns = [_original_column(name, settings.categorical_features) for name in names]
+        columns = [original_column(name, settings.categorical_features) for name in names]
         gain = pd.Series(pipeline.named_steps["model"].feature_importances_, index=columns)
         gain = gain.groupby(level=0).sum()
         gain_per_fold.append(gain / gain.sum())

@@ -3,7 +3,7 @@ import pytest
 
 from src.data.loader import load_data
 from src.features.engineering import add_behavioural_features
-from src.features.selection import _original_column
+from src.preprocessing.pipeline import original_column
 
 
 def make_session(**overrides) -> pd.DataFrame:
@@ -64,6 +64,6 @@ def test_no_missing_or_negative_values_on_real_data():
 def test_encoded_names_map_back_to_their_column():
     categorical = ["Month", "Region"]
 
-    assert _original_column("categorical__Month_Nov", categorical) == "Month"
-    assert _original_column("categorical__Region_3", categorical) == "Region"
-    assert _original_column("log_scaled__PageValues", categorical) == "PageValues"
+    assert original_column("categorical__Month_Nov", categorical) == "Month"
+    assert original_column("categorical__Region_3", categorical) == "Region"
+    assert original_column("log_scaled__PageValues", categorical) == "PageValues"
