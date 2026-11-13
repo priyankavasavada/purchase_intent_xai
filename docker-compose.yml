@@ -1,0 +1,27 @@
+# Runs the API and the dashboard together:
+#     docker compose up --build
+# API docs: http://localhost:8000/docs    Dashboard: http://localhost:8501
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    image: purchase-intent-api:latest
+    ports:
+      - "${API_PORT:-8000}:8000"
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/dashboard.Dockerfile
+    image: purchase-intent-dashboard:latest
+    ports:
+      - "${DASHBOARD_PORT:-8501}:8501"
+    environment:
+      # Inside compose the API is reachable by its service name.
+      API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

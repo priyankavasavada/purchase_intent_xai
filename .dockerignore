@@ -1,0 +1,20 @@
+# Keep images small: only src/, dashboard/, models/, dataset/ and reports/ are needed.
+.git
+.github
+.venv
+venv
+**/__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.ipynb_checkpoints
+notebooks
+tests
+docs
+logs
+mlruns
+mlflow.db
+models/baseline_logreg.*
+*.docx
+.env
+.DS_Store

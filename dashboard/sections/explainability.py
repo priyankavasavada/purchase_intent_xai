@@ -91,4 +91,5 @@ def render() -> None:
             "so trust its directions more than its exact weights."
         )
     with st.expander("Session details"):
-        st.dataframe(session.T.rename(columns={row: "value"}), width="stretch")
+        # One column mixes text and numbers, so show it all as text.
+        st.dataframe(session.T.rename(columns={row: "value"}).astype(str), width="stretch")
