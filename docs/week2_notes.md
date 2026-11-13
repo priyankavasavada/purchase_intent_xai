@@ -1,13 +1,14 @@
 # Week 2 — Modelling & Evaluation
 
-Status: feature engineering, feature selection and the six-model comparison are done.
-Still to do: hyperparameter tuning, operating-point tooling, the confusion matrix,
-MLflow tracking and saving the best model.
+Status: complete. Feature engineering and selection, six models compared and tuned,
+operating-point tooling, the final model on the test set, and MLflow tracking.
 
 ## Scope changes
 
 | Date | Change | Reason |
 |---|---|---|
+| 2026-11-13 | PageValues left out of the model | Data leakage: we score mid-session (section 5). |
+| 2026-11-13 | No value-based threshold chosen by us | The value of a conversion and the cost of a nudge are unknown. The CRO team owns that trade-off, so we deliver operating-point tooling and a neutral default (section 7). |
 | 2026-11-05 | CatBoost uses the same one-hot encoding as the other models, not its native categorical handling | Keeps one common pipeline for all six models. Comparing the two is a PRD stretch goal. |
 
 ## 1. Feature engineering (`src/features/engineering.py`)
@@ -114,10 +115,105 @@ whole-session totals. Mid-session they will be smaller than in the training data
 live performance may be somewhat lower again. Training on partial sessions would need
 page-level event data, which this dataset does not have.
 
+## 6. Tuning (`src/models/tune_models.py`)
+
+**Hyperparameters** are settings chosen before training, such as tree depth or learning
+rate. **Randomised search** tries 20 random combinations per model and keeps the one with
+the best mean PR-AUC over the same 5 folds.
+
+Imbalance strategy is now `none` for every model: SMOTE never helped, and class weights
+only moved the precision/recall trade-off (which the threshold handles) while inflating
+the probabilities the CRO team will read.
+
+| Model | Before tuning | After tuning |
+|---|---|---|
+| XGBoost | 0.513 | 0.538 ± 0.019 |
+| CatBoost | 0.532 | 0.538 ± 0.020 |
+| Random Forest | 0.529 | 0.537 ± 0.019 |
+| Logistic Regression | 0.525 | 0.535 ± 0.018 |
+| LightGBM | 0.500 | 0.524 ± 0.019 |
+| Decision Tree | 0.478 | 0.487 ± 0.015 |
+
+XGBoost and CatBoost are tied. XGBoost was picked by the rule decided in advance (highest
+mean), but CatBoost would be just as fair a choice. Several best settings sit at the edge
+of their range (XGBoost `max_depth` = 2), so the models want to be simple; a wider search
+might add a little more. Tuning and choosing on the same folds makes the CV scores
+slightly optimistic, which is why the test set is used at the end.
+
+## 7. Operating points instead of one "right" threshold (`src/models/threshold.py`)
+
+Every session gets a probability. A **threshold** turns it into a decision: nudge or not.
+Choosing it is a business decision: the value of a reached buyer against the cost of a
+nudge. We don't know either number, and the growth/CRO team owns that trade-off, so the
+project delivers the tooling to make it:
+
+- `operating_points()`: precision, recall, share of sessions flagged and the confusion counts at every threshold from 0.01 to 0.99.
+- `add_expected_value()`: net value = buyers reached × value − sessions nudged × cost.
+- `value_threshold()`: the threshold with the best net value, or `None` if nudging never pays.
+- `default_threshold()`: a neutral default until the team picks one, the threshold with the best F1.
+
+The default threshold is set from **out-of-fold** predictions on the training split: each
+training row is scored by a model trained without it. Choosing it on the test set would
+leak test information into a decision.
+
+A useful rule of thumb: nudging a group of sessions pays only if its precision is above
+cost ÷ value. "Value" should be the *extra* value a nudge brings, because many flagged
+buyers would buy anyway.
+
+## 8. Final model (`src/models/train_final.py`)
+
+Tuned XGBoost, without PageValues. Default threshold 0.27. Test set, 2,400 sessions:
+
+| Metric | Value |
+|---|---|
+| PR-AUC | 0.559 (CV: 0.538) |
+| Recall | 0.610 |
+| Precision | 0.529 |
+| F1 | 0.567 |
+| ROC-AUC | 0.849 |
+| Accuracy | 0.853 |
+
+| | Predicted no | Predicted buy |
+|---|---|---|
+| Actual no | 1,818 | 205 |
+| Actual buy | 147 | 230 |
+
+So 18% of sessions get flagged, 53% of those buy (16% of all sessions do), and 61% of
+buyers are reached. The test PR-AUC is close to the CV score, so there is no sign of overfitting.
+
+A second model, `purchase_intent_with_page_values`, is trained the same way for the
+dashboard comparison only (test PR-AUC 0.867). It reuses the parameters tuned without
+PageValues.
+
+Models are saved with version numbers (`models/purchase_intent_v1.joblib` plus a `.json`
+with the threshold, metrics and parameters). `predict.py` uses the newest version.
+
+## 9. MLflow (`src/models/tracking.py`)
+
+MLflow keeps a record of every run: parameters, metrics and files. Tuning logs one run
+per model; final training logs both variants with the model, its **signature** (expected
+input columns and output) and the operating points. The real model is added to the
+**model registry** as `purchase-intent`, which gives it a version number to deploy or roll back to.
+
+Models are logged with `cloudpickle`. MLflow's newer default (skops) refuses to load
+classes it hasn't been told to trust, which includes our feature step and XGBoost.
+Pickle-based files can run code when loaded, so only load models you created yourself.
+
+To look at the runs:
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+Then open http://127.0.0.1:5000. The database and run files stay on your machine
+(`mlflow.db`, `mlruns/`) and are not committed.
+
 ## Running it
 
 ```bash
 source .venv/bin/activate
 python -m src.features.selection      # feature rankings -> reports/
-python -m src.models.compare_models   # six-model comparison -> reports/
+python -m src.models.compare_models   # six models, with/without PageValues -> reports/
+python -m src.models.tune_models      # tuning -> reports/best_params.json + MLflow
+python -m src.models.train_final      # final models -> models/ + reports/ + MLflow
 ```

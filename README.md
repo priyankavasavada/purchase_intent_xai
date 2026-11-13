@@ -3,7 +3,7 @@
 Predicts whether an online shopping session will end in a purchase, explains each
 prediction, and (in later weeks) serves it through an API and a dashboard.
 
-> Status: Week 1 complete, Week 2 in progress. See `docs/week1_notes.md` and `docs/week2_notes.md`.
+> Status: Weeks 1 and 2 complete. See `docs/week1_notes.md` and `docs/week2_notes.md`.
 
 ## Setup
 
@@ -25,8 +25,15 @@ All commands are run from the project root.
 # Train the baseline model -> models/baseline_logreg.joblib (+ .json metadata)
 python -m src.models.train_baseline
 
-# Score one or more sessions from a JSON file
+# Tune the six models, then train and save the final model (logged to MLflow)
+python -m src.models.tune_models
+python -m src.models.train_final
+
+# Score one or more sessions with the newest saved model
 python -m src.models.predict examples/sample_session.json
+
+# Browse experiment runs and the model registry at http://127.0.0.1:5000
+mlflow ui --backend-store-uri sqlite:///mlflow.db
 
 # Compare imbalance strategies with 5-fold stratified cross-validation
 python -m src.models.compare_imbalance
@@ -38,7 +45,7 @@ python -m src.features.selection
 python -m src.models.compare_models
 ```
 
-Notebooks: `01_eda.ipynb` (EDA) and `02_features.ipynb` (feature selection).
+Notebooks: `01_eda.ipynb` (EDA), `02_features.ipynb` (feature selection) and `03_modeling.ipynb` (model comparison and operating points).
 
 ## Code quality
 
@@ -60,7 +67,7 @@ src/
   data/         loading, validation, train/test split
   features/     behavioural features + feature selection
   preprocessing/ ColumnTransformer + imbalance strategy
-  models/       training, evaluation, saving/loading, prediction
+  models/       training, tuning, thresholds, MLflow, saving/loading, prediction
   utils/        logging
 models/         saved model artifacts (not committed)
 reports/        results from the comparison scripts
