@@ -115,7 +115,7 @@ def score_feature_set(
 
 
 def main() -> None:
-    settings = replace(get_settings(), dropped_features=[])
+    settings = replace(get_settings(), dropped_features=[], leakage_excluded_features=[])
     setup_logging(settings.logs_dir)
 
     X_train, _, y_train, _ = split_data(load_data(settings=settings), settings)

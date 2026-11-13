@@ -26,6 +26,7 @@ class Settings:
     engineered_log_scaled_features: list[str]
     engineered_scaled_features: list[str]
     dropped_features: list[str]
+    leakage_excluded_features: list[str]
     imbalance_strategy: str
     threshold: float
     cv_folds: int
@@ -39,7 +40,13 @@ class Settings:
         return self.numeric_features + self.categorical_features
 
     def _kept(self, columns: list[str]) -> list[str]:
-        return [col for col in columns if col not in self.dropped_features]
+        removed = self.dropped_features + self.leakage_excluded_features
+        return [col for col in columns if col not in removed]
+
+    @property
+    def input_columns(self) -> list[str]:
+        """Raw columns a session must provide when it is scored."""
+        return [col for col in self.feature_columns if col not in self.leakage_excluded_features]
 
     @property
     def model_log_scaled(self) -> list[str]:
@@ -84,6 +91,7 @@ def get_settings(config_file: Path = CONFIG_FILE) -> Settings:
         engineered_log_scaled_features=features["engineered_log_scaled"],
         engineered_scaled_features=features["engineered_scaled"],
         dropped_features=features["dropped"],
+        leakage_excluded_features=features["leakage_excluded"],
         imbalance_strategy=training["imbalance_strategy"],
         threshold=training["threshold"],
         cv_folds=training["cv_folds"],

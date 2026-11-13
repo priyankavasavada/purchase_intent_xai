@@ -1,7 +1,7 @@
 # Week 2 — Modelling & Evaluation
 
 Status: feature engineering, feature selection and the six-model comparison are done.
-Still to do: hyperparameter tuning, the value-based threshold, the confusion matrix,
+Still to do: hyperparameter tuning, operating-point tooling, the confusion matrix,
 MLflow tracking and saving the best model.
 
 ## Scope changes
@@ -95,12 +95,24 @@ A model that guesses scores about 0.157.
 
 Precision and recall above use the placeholder threshold of 0.5.
 
-## 5. Open decision: PageValues
+## 5. Decision: PageValues is left out (data leakage)
 
-All columns describe a whole session, and PageValues may partly reflect pages seen near
-checkout. If the business scores sessions early enough to act, a model relying on it may
-perform much worse in production than these scores suggest. This needs deciding before
-the final model is saved.
+We score sessions mid-visit, while a nudge can still change the outcome. PageValues
+mostly fills in as a visitor heads to checkout: no buyer has PageValues = 0, and no
+session with PageValues = 0 converts. Mid-session it is either unknown or already a
+sign that the purchase is happening, so using it would be data leakage.
+
+It is listed under `features.leakage_excluded` in `config.yaml`, separate from the
+columns dropped for being weak, so the reason stays visible. The comparison scripts
+put it back in for comparison only. The dashboard will show both versions.
+
+The cost on paper is large: cross-validated PR-AUC falls from about 0.85 to about 0.53.
+The lower number is the honest one for our use.
+
+**Remaining caveat:** the other columns, such as page counts and durations, are also
+whole-session totals. Mid-session they will be smaller than in the training data, so
+live performance may be somewhat lower again. Training on partial sessions would need
+page-level event data, which this dataset does not have.
 
 ## Running it
 

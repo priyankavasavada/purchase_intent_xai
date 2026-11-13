@@ -62,3 +62,14 @@ def test_dropped_features_are_left_out(data):
     assert "VisitorType" not in names
     assert "Weekend" not in names
     assert "log_scaled__total_pages" in names
+
+
+def test_page_values_is_excluded_to_prevent_leakage(data):
+    names = list(build_preprocessor().fit(data).get_feature_names_out())
+    assert "log_scaled__PageValues" not in names
+
+
+def test_page_values_is_not_a_required_input():
+    from src.config.settings import get_settings
+
+    assert "PageValues" not in get_settings().input_columns

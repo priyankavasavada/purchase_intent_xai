@@ -47,7 +47,7 @@ def main() -> None:
         name=MODEL_NAME,
         models_dir=settings.models_dir,
         threshold=settings.threshold,
-        feature_columns=settings.feature_columns,
+        feature_columns=settings.input_columns,
         metrics=metrics,
     )
 

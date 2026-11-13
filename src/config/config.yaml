@@ -54,6 +54,11 @@ features:
     - Informational
     - VisitorType
     - Weekend
+  # Left out to prevent data leakage. We score sessions mid-visit, and PageValues
+  # mostly reflects pages seen on the way to checkout, so it is not known yet.
+  # See notebooks/01_eda (leakage check) and docs/week2_notes.md.
+  leakage_excluded:
+    - PageValues
 
 training:
   # How to deal with class imbalance: none | class_weight | smote

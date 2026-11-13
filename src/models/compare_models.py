@@ -1,6 +1,7 @@
 """Compare the six models with stratified cross-validation.
 
-Every model runs with each imbalance strategy, with and without PageValues.
+Every model runs with each imbalance strategy, without PageValues (the real
+setup) and with it (for comparison only).
 Only the training split is used; the test split stays untouched. Metrics that
 depend on a threshold use 0.5 for now.
 
@@ -30,10 +31,9 @@ def main() -> None:
 
     X_train, _, y_train, _ = split_data(load_data(settings=settings), settings)
 
-    without_page_values = replace(
-        settings, dropped_features=settings.dropped_features + ["PageValues"]
-    )
-    feature_sets = {"with_page_values": settings, "without_page_values": without_page_values}
+    # The real model leaves PageValues out; put it back in for comparison only.
+    with_page_values = replace(settings, leakage_excluded_features=[])
+    feature_sets = {"with_page_values": with_page_values, "without_page_values": settings}
 
     rows = []
     for feature_set, trial_settings in feature_sets.items():
