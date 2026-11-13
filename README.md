@@ -51,7 +51,9 @@ python -m src.features.selection
 python -m src.models.compare_models
 ```
 
-Notebooks: `01_eda.ipynb` (EDA), `02_features.ipynb` (feature selection) `03_modeling.ipynb` (model comparison and operating points) and `04_xai.ipynb` (SHAP and LIME).
+How to call the API and read its answers: [docs/api.md](docs/api.md).
+
+Notebooks: `01_eda.ipynb` (EDA), `02_features.ipynb` (feature selection), `03_modeling.ipynb` (model comparison and operating points) and `04_xai.ipynb` (SHAP and LIME).
 
 ## Code quality
 

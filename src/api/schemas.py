@@ -58,25 +58,39 @@ class Session(BaseModel):
 
 
 class Contributor(BaseModel):
-    """One behaviour and how much it moved the score (SHAP, in log-odds)."""
+    """One reason behind the score."""
 
-    feature: str
-    value: bool | int | float | str
-    contribution: float
-    effect: Literal["increases", "decreases"]
+    feature: str = Field(description="The behaviour, e.g. ExitRates")
+    value: bool | int | float | str = Field(description="This session's value for it")
+    contribution: float = Field(
+        description=(
+            "How much it moved the score (SHAP, in log-odds). Positive pushes towards a "
+            "purchase, negative away. Compare sizes between features; it is not a probability."
+        )
+    )
+    effect: Literal["increases", "decreases"] = Field(
+        description="Plain-language direction of the contribution"
+    )
 
 
 class Prediction(BaseModel):
-    model_version: str
-    conversion_probability: float = Field(description="Chance the session ends in a purchase")
-    will_convert: bool = Field(description="Whether the probability reaches the threshold")
-    threshold: float = Field(description="Threshold used for will_convert")
+    """The answer for one session."""
+
+    model_version: str = Field(description="Which saved model produced this answer")
+    conversion_probability: float = Field(description="Chance the session ends in a purchase, 0-1")
+    will_convert: bool = Field(description="True when the probability reaches the threshold")
+    threshold: float = Field(description="The threshold used: the default or the one you sent")
     confidence: Literal["low", "medium", "high"] = Field(
-        description="How far the probability is from the threshold. Not a calibrated certainty."
+        description=(
+            "How clear-cut the decision is: low if the probability is within 0.1 of the "
+            "threshold, medium within 0.25, high beyond. A rule of thumb, not a certainty."
+        )
     )
-    top_contributors: list[Contributor]
+    top_contributors: list[Contributor] = Field(
+        description="The 5 behaviours that moved the score most, biggest first"
+    )
 
 
 class Health(BaseModel):
-    status: Literal["ok"]
-    model_version: str
+    status: Literal["ok"] = Field(description="Always ok when the server is answering")
+    model_version: str = Field(description="Which saved model is loaded")

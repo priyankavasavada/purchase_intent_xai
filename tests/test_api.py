@@ -4,8 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from xgboost import XGBClassifier
 
-from src.api import scoring
-from src.api.main import create_app
+from src.api import main, scoring
 from src.api.schemas import EXAMPLE_SESSION, Session
 from src.api.scoring import confidence_label
 from src.config.settings import get_settings
@@ -36,9 +35,13 @@ def models_dir(tmp_path_factory):
 
 @pytest.fixture(scope="module")
 def client(models_dir):
-    app = create_app(replace(settings, models_dir=models_dir, logs_dir=models_dir))
-    with TestClient(app) as test_client:
-        yield test_client
+    """Start the real app, pointed at the temporary model folder."""
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(
+            main, "settings", replace(settings, models_dir=models_dir, logs_dir=models_dir)
+        )
+        with TestClient(main.app) as test_client:
+            yield test_client
 
 
 def session(**changes) -> dict:
@@ -129,8 +132,10 @@ def test_model_loads_once(models_dir, monkeypatch):
         return original_load(*args, **kwargs)
 
     monkeypatch.setattr(scoring.Scorer, "load", counting_load)
-    app = create_app(replace(settings, models_dir=models_dir, logs_dir=models_dir))
-    with TestClient(app) as fresh:
+    monkeypatch.setattr(
+        main, "settings", replace(settings, models_dir=models_dir, logs_dir=models_dir)
+    )
+    with TestClient(main.app) as fresh:
         for _ in range(3):
             assert fresh.post("/predict", json=session()).status_code == 200
 
