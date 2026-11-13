@@ -1,0 +1,50 @@
+{
+  "name": "purchase_intent_with_page_values_v1",
+  "created_at": "2026-11-13T11:42:37+00:00",
+  "threshold": 0.45,
+  "feature_columns": [
+    "Administrative",
+    "Administrative_Duration",
+    "Informational",
+    "Informational_Duration",
+    "ProductRelated",
+    "ProductRelated_Duration",
+    "PageValues",
+    "BounceRates",
+    "ExitRates",
+    "SpecialDay",
+    "Month",
+    "OperatingSystems",
+    "Browser",
+    "Region",
+    "TrafficType",
+    "VisitorType",
+    "Weekend"
+  ],
+  "test_metrics": {
+    "pr_auc": 0.8674,
+    "recall": 0.8064,
+    "precision": 0.7755,
+    "f1": 0.7906,
+    "roc_auc": 0.9723,
+    "accuracy": 0.9329
+  },
+  "sklearn_version": "1.9.1",
+  "model_type": "xgboost",
+  "params": {
+    "colsample_bytree": 0.610167650697638,
+    "learning_rate": 0.013815607382950859,
+    "max_depth": 2,
+    "min_child_weight": 4,
+    "n_estimators": 321,
+    "subsample": 0.6557325817623503
+  },
+  "threshold_rule": "Best F1 on out-of-fold training predictions. A neutral default only: the growth/CRO team should pick the operating point from its own conversion value and nudge cost.",
+  "test_confusion_matrix": {
+    "tn": 1935,
+    "fp": 88,
+    "fn": 73,
+    "tp": 304
+  },
+  "leakage_excluded_features": []
+}
