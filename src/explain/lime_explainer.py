@@ -6,6 +6,8 @@ weights say which conditions (for example "ExitRates > 0.07") moved the
 probability of a purchase, and by roughly how much.
 """
 
+from collections.abc import Callable
+
 import numpy as np
 import pandas as pd
 from imblearn.pipeline import Pipeline
@@ -75,7 +77,7 @@ class LimeExplainer:
                 decoded[col] = session[col].iloc[0]
         return decoded[self.settings.input_columns]
 
-    def predict_function(self, session: pd.DataFrame):
+    def predict_function(self, session: pd.DataFrame) -> Callable[[np.ndarray], np.ndarray]:
         """The function LIME calls: numeric rows in, class probabilities out."""
 
         def predict(rows: np.ndarray) -> np.ndarray:

@@ -92,6 +92,6 @@ class ShapExplainer:
         return self.contributions(sessions).abs().mean().sort_values(ascending=False)
 
 
-def _plain(value):
+def _plain(value: object) -> object:
     """Turn numpy numbers into plain Python ones so they can be sent as JSON."""
     return value.item() if hasattr(value, "item") else value

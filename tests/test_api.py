@@ -154,4 +154,4 @@ def test_model_loads_once(models_dir, monkeypatch):
     ],
 )
 def test_confidence_label(probability, expected):
-    assert confidence_label(probability, threshold=0.27) == expected
+    assert confidence_label(probability, 0.27, low_below=0.1, medium_below=0.25) == expected

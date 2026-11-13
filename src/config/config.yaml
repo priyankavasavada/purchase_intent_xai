@@ -66,11 +66,28 @@ training:
   # trade-off, which the operating threshold handles. Without reweighting, the
   # predicted probabilities stay closer to real conversion chances.
   imbalance_strategy: none
-  # Placeholder. A value-based threshold is chosen in Week 2.
-  threshold: 0.5
+  # Only used by the Week 1 baseline (train_baseline). The final model's default
+  # threshold is set by train_final (best F1 on out-of-fold predictions), and the
+  # CRO team picks the real operating point with src/models/threshold.py.
+  baseline_threshold: 0.5
   cv_folds: 5
   # Random parameter combinations tried per model during tuning.
   tuning_iterations: 20
+
+selection:
+  # Times each column is shuffled when measuring permutation importance.
+  permutation_repeats: 5
+  # A column is only weak if its share of LightGBM gain is below this
+  # (and its permutation importance is within the noise).
+  min_gain_share: 0.01
+
+api:
+  # How many reasons /predict returns for each session.
+  top_contributors: 5
+  # Confidence label by distance from the threshold:
+  # below low_below -> "low", below medium_below -> "medium", else "high".
+  confidence_low_below: 0.1
+  confidence_medium_below: 0.25
 
 mlflow:
   # Local experiment log. Open it with: mlflow ui --backend-store-uri sqlite:///mlflow.db

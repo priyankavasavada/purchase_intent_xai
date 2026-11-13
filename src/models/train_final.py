@@ -15,6 +15,7 @@ import json
 from dataclasses import replace
 
 import mlflow
+import pandas as pd
 from mlflow.models import infer_signature
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
@@ -39,7 +40,12 @@ THRESHOLD_RULE = (
 
 
 def train_variant(
-    prefix: str, settings: Settings, model_name: str, params: dict, data, register: bool
+    prefix: str,
+    settings: Settings,
+    model_name: str,
+    params: dict,
+    data: tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series],
+    register: bool,
 ) -> dict:
     """Train, evaluate and save one version of the model. Returns its summary."""
     X_train, X_test, y_train, y_test = data

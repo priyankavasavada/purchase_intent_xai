@@ -12,17 +12,19 @@ logger = get_logger(__name__)
 MODEL_PREFIX = "purchase_intent"
 
 
-def confidence_label(probability: float, threshold: float) -> str:
+def confidence_label(
+    probability: float, threshold: float, low_below: float, medium_below: float
+) -> str:
     """Label how clear-cut a decision is by its distance from the threshold.
 
     A session just above or below the threshold could easily have gone the
     other way, so it gets "low". This is a simple rule of thumb, not a
-    statistical measure of certainty.
+    statistical measure of certainty. The bands come from config.yaml.
     """
     distance = abs(probability - threshold)
-    if distance < 0.1:
+    if distance < low_below:
         return "low"
-    if distance < 0.25:
+    if distance < medium_below:
         return "medium"
     return "high"
 
@@ -32,6 +34,7 @@ class Scorer:
 
     def __init__(self, artifact: ModelArtifact, settings: Settings) -> None:
         self.artifact = artifact
+        self.settings = settings
         self.explainer = ShapExplainer(artifact.pipeline, settings)
 
     @classmethod
@@ -44,7 +47,7 @@ class Scorer:
     def model_version(self) -> str:
         return self.artifact.metadata["name"]
 
-    def score(self, session: dict, threshold: float | None = None, top_n: int = 5) -> dict:
+    def score(self, session: dict, threshold: float | None = None) -> dict:
         """Score one session and explain the result."""
         threshold = self.artifact.threshold if threshold is None else threshold
         frame = pd.DataFrame([session])[self.artifact.feature_columns]
@@ -55,6 +58,13 @@ class Scorer:
             "conversion_probability": round(probability, 4),
             "will_convert": probability >= threshold,
             "threshold": threshold,
-            "confidence": confidence_label(probability, threshold),
-            "top_contributors": self.explainer.top_contributors(frame, n=top_n),
+            "confidence": confidence_label(
+                probability,
+                threshold,
+                self.settings.confidence_low_below,
+                self.settings.confidence_medium_below,
+            ),
+            "top_contributors": self.explainer.top_contributors(
+                frame, n=self.settings.api_top_contributors
+            ),
         }

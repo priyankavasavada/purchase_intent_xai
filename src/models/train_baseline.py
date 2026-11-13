@@ -31,7 +31,9 @@ def main() -> None:
 
     # Reference point: always predict "no purchase". High accuracy, zero recall.
     dummy = DummyClassifier(strategy="prior").fit(X_train, y_train)
-    dummy_metrics = compute_metrics(y_test, dummy.predict_proba(X_test)[:, 1], settings.threshold)
+    dummy_metrics = compute_metrics(
+        y_test, dummy.predict_proba(X_test)[:, 1], settings.baseline_threshold
+    )
     logger.info("Dummy baseline metrics: %s", dummy_metrics)
 
     model = LogisticRegression(max_iter=1000, random_state=settings.random_seed)
@@ -39,14 +41,14 @@ def main() -> None:
     pipeline.fit(X_train, y_train)
 
     y_proba = pipeline.predict_proba(X_test)[:, 1]
-    metrics = compute_metrics(y_test, y_proba, settings.threshold)
+    metrics = compute_metrics(y_test, y_proba, settings.baseline_threshold)
     logger.info("Logistic regression metrics: %s", metrics)
 
     save_artifact(
         pipeline=pipeline,
         name=MODEL_NAME,
         models_dir=settings.models_dir,
-        threshold=settings.threshold,
+        threshold=settings.baseline_threshold,
         feature_columns=settings.input_columns,
         metrics=metrics,
     )

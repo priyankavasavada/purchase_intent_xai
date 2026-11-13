@@ -28,9 +28,14 @@ class Settings:
     dropped_features: list[str]
     leakage_excluded_features: list[str]
     imbalance_strategy: str
-    threshold: float
+    baseline_threshold: float
     cv_folds: int
     tuning_iterations: int
+    permutation_repeats: int
+    min_gain_share: float
+    api_top_contributors: int
+    confidence_low_below: float
+    confidence_medium_below: float
     mlflow_tracking_uri: str
     mlflow_artifacts_dir: Path
     mlflow_experiment: str
@@ -99,9 +104,14 @@ def get_settings(config_file: Path = CONFIG_FILE) -> Settings:
         dropped_features=features["dropped"],
         leakage_excluded_features=features["leakage_excluded"],
         imbalance_strategy=training["imbalance_strategy"],
-        threshold=training["threshold"],
+        baseline_threshold=training["baseline_threshold"],
         cv_folds=training["cv_folds"],
         tuning_iterations=training["tuning_iterations"],
+        permutation_repeats=config["selection"]["permutation_repeats"],
+        min_gain_share=config["selection"]["min_gain_share"],
+        api_top_contributors=config["api"]["top_contributors"],
+        confidence_low_below=config["api"]["confidence_low_below"],
+        confidence_medium_below=config["api"]["confidence_medium_below"],
         mlflow_tracking_uri=f"sqlite:///{PROJECT_ROOT / tracking['tracking_db']}",
         mlflow_artifacts_dir=PROJECT_ROOT / tracking["artifacts_dir"],
         mlflow_experiment=tracking["experiment"],

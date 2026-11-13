@@ -18,9 +18,10 @@ Then open http://127.0.0.1:8000/docs to try it in the browser.
 """
 
 import time
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, Query, Request, Response
 
 from src.api.schemas import Health, Prediction, Session
 from src.api.scoring import Scorer
@@ -32,7 +33,7 @@ settings = get_settings()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Code before `yield` runs once at startup; the server then handles requests."""
     setup_logging(settings.logs_dir)
     app.state.scorer = Scorer.load(settings)
@@ -53,13 +54,15 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
-    """Log every request with its status code and how long it took."""
+async def log_requests(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    """Log every request as key=value pairs, so log tools can filter and count them."""
     start = time.perf_counter()
     response = await call_next(request)
     elapsed_ms = (time.perf_counter() - start) * 1000
     logger.info(
-        "%s %s -> %d (%.1f ms)",
+        "request method=%s path=%s status=%d duration_ms=%.1f",
         request.method,
         request.url.path,
         response.status_code,

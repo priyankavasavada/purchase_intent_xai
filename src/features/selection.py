@@ -24,9 +24,6 @@ from src.utils.logger import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
-PERMUTATION_REPEATS = 5
-# A feature is only a drop candidate when both methods call it weak.
-MIN_GAIN_SHARE = 0.01
 REPORT_DIR = PROJECT_ROOT / "reports"
 
 
@@ -65,7 +62,7 @@ def rank_features(X: pd.DataFrame, y: pd.Series, settings: Settings) -> pd.DataF
             X_val,
             y.iloc[val_idx],
             scoring="average_precision",
-            n_repeats=PERMUTATION_REPEATS,
+            n_repeats=settings.permutation_repeats,
             random_state=settings.random_seed,
         )
         permutation_per_fold.append(pd.Series(result.importances_mean, index=X_val.columns))
@@ -80,7 +77,8 @@ def rank_features(X: pd.DataFrame, y: pd.Series, settings: Settings) -> pd.DataF
             "permutation_std": permutations.std(axis=1),
         }
     )
-    weak_gain = ranking["gain_share"] < MIN_GAIN_SHARE
+    # A feature is only a drop candidate when both methods call it weak.
+    weak_gain = ranking["gain_share"] < settings.min_gain_share
     weak_permutation = ranking["permutation_mean"] <= ranking["permutation_std"]
     ranking["drop_candidate"] = weak_gain & weak_permutation
     return ranking.sort_values("permutation_mean", ascending=False)

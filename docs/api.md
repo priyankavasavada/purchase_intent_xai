@@ -153,5 +153,5 @@ If the server can't find a trained model at startup, it stops with an error sayi
 Every request is logged with its status and time, to the console and `logs/app.log`:
 
 ```
-POST /predict -> 200 (9.4 ms)
+request method=POST path=/predict status=200 duration_ms=9.4
 ```
