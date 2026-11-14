@@ -44,7 +44,8 @@ threshold from its own conversion value and nudge cost; see the
 | [API guide](docs/api.md) | Calling `/predict` and reading its answer |
 | [Architecture](docs/architecture.md) | Architecture and workflow diagrams; one session from CSV row to response |
 | [Model card](docs/model_card.md) | What the model is for, how well it works, its limits |
-| [AWS deployment](docs/deployment_aws.md) | Deploying to ECR and ECS Fargate |
+| [Free deployment on EC2](docs/deployment_free_ec2.md) | Putting it online on one small server, within AWS free-tier credits |
+| [AWS deployment](docs/deployment_aws.md) | Production-style deployment to ECR and ECS Fargate |
 | Notes: [week 1](docs/week1_notes.md), [week 2](docs/week2_notes.md), [week 3](docs/week3_notes.md), [week 4](docs/week4_notes.md) | What was built each week and why |
 
 Notebooks (CRISP-DM): `01_eda` (data understanding), `02_features` (data preparation),

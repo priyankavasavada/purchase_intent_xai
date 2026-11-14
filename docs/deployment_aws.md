@@ -3,7 +3,7 @@
 The project is ready to run on AWS with **Amazon ECR** (stores the Docker images) and
 **Amazon ECS on Fargate** (runs them without managing servers). Nothing here has been
 deployed; following these steps creates resources that cost money, so delete them
-afterwards (last section).
+afterwards (last section). For a free demo on a single server, see `docs/deployment_free_ec2.md`.
 
 ## How it fits together
 
