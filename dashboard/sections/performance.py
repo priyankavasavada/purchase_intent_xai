@@ -144,6 +144,10 @@ def render() -> None:
         status = f"up, {health['model_version']}" if health else "not reachable"
         col2.write(f"**API:** {API_URL}  \n**Status:** {status}")
     else:
-        col2.write("**Scoring:** local (no API_URL set)")
+        col2.write(
+            "**Scoring:** inside the dashboard, with the saved model (same answers as the API).  \n"
+            "To score through a running API instead, start the dashboard with "
+            "`API_URL=http://127.0.0.1:8000 streamlit run dashboard/app.py`."
+        )
     with col2.expander("Model parameters"):
         st.json(meta["params"])

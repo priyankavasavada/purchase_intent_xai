@@ -68,6 +68,16 @@ uvicorn src.api.main:app --reload          # API: http://127.0.0.1:8000/docs
 streamlit run dashboard/app.py             # dashboard: http://localhost:8501
 ```
 
+The dashboard scores sessions itself by default, using the same saved model and code as the
+API. To make it score through the running API instead (as it does in docker-compose), pass
+the API's address when starting it:
+
+```bash
+API_URL=http://127.0.0.1:8000 streamlit run dashboard/app.py
+```
+
+The System box at the bottom of *Performance & threshold* shows which one is in use.
+
 ### Retrain from scratch (optional)
 
 The saved model is already in `models/`. To rebuild everything:
