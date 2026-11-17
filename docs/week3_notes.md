@@ -50,7 +50,7 @@ five, pointing the same way, every time. But LIME's local fit is usually weak (m
 R² about 0.16), so its exact weights are rough. SHAP is used in the API; LIME is the
 independent check.
 
-## 4. Model card (`docs/model_card.md`)
+## 4. Model card (section 6 of `docs/user_guide.md`)
 
 A short document for anyone using the model: what it is for, what it must not be used for,
 how it performs, how to choose a threshold, and its limitations.

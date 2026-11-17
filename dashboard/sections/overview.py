@@ -53,5 +53,5 @@ def render() -> None:
     trained = scorer().artifact.metadata["created_at"][:10]
     st.caption(
         f"Model: {scorer().model_version}, trained {trained}. "
-        "See docs/model_card.md for intended use and limitations."
+        "See the model card in docs/user_guide.md for intended use and limitations."
     )

@@ -16,7 +16,7 @@ docker compose up --build
 - API docs: http://localhost:8000/docs
 
 The trained model is in the repository, so nothing needs training first. Running without
-Docker, training and the notebooks are covered in the [install guide](docs/install.md).
+Docker, training and the notebooks are covered in the [user guide](docs/user_guide.md).
 
 ## Results
 
@@ -33,20 +33,14 @@ PageValues is **left out** to prevent data leakage: it mostly fills in on the wa
 checkout, so it isn't known mid-session. A comparison model with it reaches a PR-AUC of
 0.867, which is shown in the dashboard for reference only. The CRO team picks the operating
 threshold from its own conversion value and nudge cost; see the
-[model card](docs/model_card.md) for performance, intended use and limitations.
+model card in the [user guide](docs/user_guide.md#6-model-card) for performance, intended use and limitations.
 
 ## Documentation
 
-| Document | For |
-|---|---|
-| [Install guide](docs/install.md) | Running with Docker or Python, retraining, troubleshooting |
-| [User guide](docs/user_guide.md) | Using the dashboard and choosing a threshold |
-| [API guide](docs/api.md) | Calling `/predict` and reading its answer |
-| [Architecture](docs/architecture.md) | Architecture and workflow diagrams; one session from CSV row to response |
-| [Model card](docs/model_card.md) | What the model is for, how well it works, its limits |
-| [Free deployment on EC2](docs/deployment_free_ec2.md) | Putting it online on one small server, within AWS free-tier credits |
-| [AWS deployment](docs/deployment_aws.md) | Production-style deployment to ECR and ECS Fargate |
-| Notes: [week 1](docs/week1_notes.md), [week 2](docs/week2_notes.md), [week 3](docs/week3_notes.md), [week 4](docs/week4_notes.md) | What was built each week and why |
+- [User guide](docs/user_guide.md): setup, running the pipeline, the dashboard, the API,
+  architecture and workflow diagrams, the model card, and deploying to AWS.
+- Weekly notes: [week 1](docs/week1_notes.md), [week 2](docs/week2_notes.md),
+  [week 3](docs/week3_notes.md), [week 4](docs/week4_notes.md), covering what was built each week and why.
 
 Notebooks (CRISP-DM): `01_eda` (data understanding), `02_features` (data preparation),
 `03_modeling` (modelling and evaluation) and `04_xai` (explainability).
@@ -125,5 +119,5 @@ tests/            pytest suite
 docker/           Dockerfiles for the API and dashboard
 deploy/aws/       ECR push script and ECS task definition
 docs/             documentation
-docker-compose.yml, requirements*.txt, constraints.txt, .env.example
+docker-compose.yml, requirements.txt, .env.example
 ```

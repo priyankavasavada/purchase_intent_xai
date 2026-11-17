@@ -56,34 +56,33 @@ How the images follow the brief's hints:
 |---|---|
 | Slim base | `python:3.12-slim` |
 | `.dockerignore` | Keeps `.venv`, notebooks, tests, docs and git history out |
-| Pinned versions | Every package version is fixed by `constraints.txt` |
+| Pinned versions | Every library is pinned in `requirements.txt` |
 | Non-root user | Containers run as `appuser`, not root |
 | `libgomp1` | Installed; XGBoost needs it on Linux |
-| Install only what you serve | `requirements-api.txt` (32 packages) and `requirements-dashboard.txt` leave out CatBoost, LightGBM, MLflow and Jupyter |
 
 Each image has a **health check**: Docker regularly calls `/health` (API) or
 `/_stcore/health` (dashboard). docker-compose only starts the dashboard once the API is
 healthy, and inside compose the dashboard reaches the API at `http://api:8000`, using the
 service name as the address.
 
-**Why `constraints.txt`?** `requirements.txt` fixes our direct libraries, but they pull in
-about 170 others. A new release of one of those can break a build that worked last week.
-`constraints.txt` (from `pip freeze`) fixes all of them.
+**One requirements file.** Both images install the same `requirements.txt` as local setups
+and CI. That keeps setup simple, at the cost of bigger images: they include libraries the
+services don't use, such as CatBoost and Jupyter. Separate, smaller lists per image would be
+the next step if image size mattered.
 
 ## 4. CI (`.github/workflows/ci.yml`)
 
 Two jobs run on every push:
 
-1. **lint-and-test**: ruff, black and pytest, installing with `constraints.txt`.
+1. **lint-and-test**: ruff, black and pytest.
 2. **docker**, only if the first passes: builds both images, starts them with
    `docker compose up --wait` (which waits for the health checks), then calls `/health`,
    `/predict` and the dashboard. If anything fails, it prints the container logs.
 
 Docker isn't installed on the development Mac, so this CI job is where the images are actually built
-and tested. Before relying on it, the API and dashboard package lists were each installed
-into an empty Python environment and run, to make sure nothing was missing.
+and tested.
 
-## 5. AWS (`deploy/aws/`, `docs/deployment_aws.md`)
+## 5. AWS (`deploy/aws/`, section 7 of `docs/user_guide.md`)
 
 - **ECR** (Elastic Container Registry) stores Docker images in AWS.
 - **ECS Fargate** runs containers without you managing any servers.
@@ -96,17 +95,9 @@ Nothing was deployed: the brief requires no cloud spend.
 
 ## 6. Documentation
 
-| Document | Contents |
-|---|---|
-| `README.md` | Quick start, results, links, scope changes, commands, structure |
-| `docs/install.md` | Docker and local setup, retraining, troubleshooting |
-| `docs/user_guide.md` | The dashboard, section by section, for the CRO team |
-| `docs/api.md` | Endpoints, fields, examples, errors |
-| `docs/architecture.md` | Architecture and workflow diagrams; one session from CSV row to response |
-| `docs/model_card.md` | Intended use, performance, threshold, explanations, limitations |
-| `docs/deployment_aws.md` | AWS deployment steps |
-
-The diagrams are written in Mermaid, a text format that GitHub draws as pictures.
+Everything a user needs is in one place, `docs/user_guide.md`: setup, running the pipeline,
+the dashboard, the API, architecture and workflow diagrams, the model card, and AWS
+deployment. The diagrams are written in Mermaid, a text format that GitHub draws as pictures.
 
 ## Still to do
 
