@@ -14,8 +14,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Install packages first, so this layer is reused when only the code changes.
-COPY requirements-api.txt constraints.txt ./
-RUN pip install -r requirements-api.txt -c constraints.txt
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
 
 COPY src ./src
 COPY models ./models

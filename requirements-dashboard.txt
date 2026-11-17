@@ -1,6 +1,0 @@
-# What the dashboard needs on top of the API's packages (used by docker/dashboard.Dockerfile).
--r requirements-api.txt
-streamlit==1.67.0
-plotly==7.1.0
-httpx==0.28.1
-lime==0.2.0.1

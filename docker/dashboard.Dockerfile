@@ -13,8 +13,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements-api.txt requirements-dashboard.txt constraints.txt ./
-RUN pip install -r requirements-dashboard.txt -c constraints.txt
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
 
 # The dashboard reads the data, the saved models and the reports.
 COPY src ./src
